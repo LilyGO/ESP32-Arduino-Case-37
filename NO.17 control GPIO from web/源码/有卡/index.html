@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+   
+<div class="container">
+    <h2>iotsharing.com - ESP32 WEBGPIO</h2>
+    </br>  
+    <table class="table">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>GPIO</th>
+        <th>In/Out</th>
+        <th>Write HIGH</th>
+        <th>Write LOW</th>
+        <th>Read</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>  
+                <button class="btn btn-default dropdown-toggle" type="status" id="status" >#status</button>
+            </td>
+            <td> 
+                <select id = "gpio" class="btn btn-default dropdown-toggle">
+                    <option>GPIO0</option>
+                    <option>GPIO2</option>
+                    <option>GPIO4</option>
+                </select>
+            </td>
+            <td>  
+                <select id = "dir" class="btn btn-default dropdown-toggle">
+                    <option>Out</option>
+                    <option>In</option>
+                </select>
+            </td>
+            <td>  
+                <button class="btn btn-default dropdown-toggle" type="button" id="write1" >Write HIGH</button>
+            </td>
+            <td>  
+                <button class="btn btn-default dropdown-toggle" type="button" id="write0" >Write LOW</button>
+            </td>
+            <td>  
+                <button class="btn btn-default dropdown-toggle" type="button" id="read" >Read</button>
+            </td>
+      </tr>
+    </tbody>
+    </table>                                        
+</div>
+<script>
+function ml(gpio, dir, value) {
+    var io = gpio.replace("GPIO", "");
+    var d = (dir == "In") ? "i" : "o";
+    if(value != null){
+        var v = (value == "Write LOW") ? "0" : "1";
+        return (io+d+v);    
+    } else {
+        return (io+d);  
+    }
+}
+$(function() {
+    $("#status").css("background","grey");
+    $('#write1').on('click', function (e) {
+        var dir = $('#dir').val();
+        $("#status").css("background","red");
+        $("#status").html("#status");
+        if(dir == "In"){
+            alert("direction is In");
+        } else {
+            var gpio = $('#gpio').val();
+            var value = $('#write1').text();
+            $.get("/req?out=" + ml(gpio, dir, value), function(d, s){
+                $("#status").css("background","green");
+                $("#status").html(s);
+            });      
+        }
+    })
+    $('#write0').on('click', function (e) {
+        var dir = $('#dir').val();
+        $("#status").css("background","red");
+        $("#status").html("#status");
+        if(dir == "In"){
+            alert("direction is In");
+        } else {
+            var gpio = $('#gpio').val();
+            var value = $('#write0').text();
+            $.get("/req?out=" + ml(gpio, dir, value), function(d, s){
+                $("#status").css("background","green");
+                $("#status").html(s);
+            });        
+        }
+    })
+    $('#read').on('click', function (e) {
+        var dir = $('#dir').val();
+        $("#status").css("background","red");
+        $("#status").html("#value");
+        if(dir == "Out"){
+            alert("direction is Out");
+        } else {
+            var gpio = $('#gpio').val();
+            $.get("/req?in=" + ml(gpio, dir, null), function(d, s){
+                if(s == "success"){
+                    $("#status").css("background","yellow");
+                    $("#status").html(d);
+                }else{
+                    $("#status").html(s);
+                }               
+            });     
+        }
+    })
+});
+</script>
+</body>
+</html>

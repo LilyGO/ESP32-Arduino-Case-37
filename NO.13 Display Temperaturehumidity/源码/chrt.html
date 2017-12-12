@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<head>
+   <meta charset="utf-8" />
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['corechart','gauge','line','imagelinechart']}]}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<style>
+.btn {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+.red {background-color: #f44336;}
+</style>
+</head>
+<body>
+<div align="center"><h1>IoTSharing.com Chart Demo</h1></div> 
+<div id="htchart"></div>
+<p><button id="led" class="btn red">LED</button></p>
+<script>
+google.charts.setOnLoadCallback(draw);
+var data, chart;
+var cnt = 0;
+var points = 14;
+var got = 0;
+var led = 0;
+var opt = {
+    hAxis: {
+        title:'Time'
+    },
+    vAxis: {
+        title:'Temp/Hum'
+    }
+};    
+function draw(){
+    data = new google.visualization.DataTable();
+    chart = new google.visualization.LineChart(document.getElementById('htchart'));
+    data.addColumn('string','Time');
+    data.addColumn('number','temp');
+    data.addColumn('number','hum');
+    data.addRows([
+        [' ', 0, 0]  
+    ]);
+    chart.draw(data, opt);
+}
+$("#led").click(function() {
+    if(led == 0){
+        $.get("/led1", function(d, s){
+            led = 1;
+            $("#led").removeClass("btn red");$("#led").addClass("btn");
+     });
+    }else{led=0;
+        $.get("/led0", function(d, s){
+            led = 0; 
+            $("#led").removeClass("btn");$("#led").addClass("btn red");
+     });
+    } 
+});
+function update() {
+    if(got == 0){
+        got = 1;
+        $.get("/dht22", function(j, s){
+            cnt ++;
+            var cur = new Date();
+            data.addRows([[cur.getMinutes() + ":" + cur.getSeconds(), j.temp, j.hum]]);
+            if(cnt == points){
+                for (i = 0; i < points/2; i++) {
+                    data.removeRow(i);
+                }
+                cnt = i;
+            }
+            got = 0;
+            chart.draw(data, opt);
+     });
+    }else{
+        got ++;
+        if(got == points/3){
+            got = 0;        
+        }
+    }  
+}
+setInterval(update, 1000);
+</script>
+</body>
+</html>
